@@ -25,7 +25,6 @@ namespace TeduShop.Model.Models
         [MaxLength(256)]
         public string Image { set; get; }
 
-        [Column(TypeName = "xml")]
         public string MoreImages { set; get; }
 
         public decimal Price { set; get; }
@@ -41,6 +40,7 @@ namespace TeduShop.Model.Models
         public bool? HomeFlag { set; get; }
         public bool? HotFlag { set; get; }
         public int? ViewCount { set; get; }
+        public string Tags { set; get; }
 
         [ForeignKey("CategoryID")]
         public virtual ProductCategory ProductCategory { set; get; }

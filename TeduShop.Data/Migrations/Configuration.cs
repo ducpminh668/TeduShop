@@ -1,9 +1,10 @@
-namespace TeduShop.Data.Migrations
+﻿namespace TeduShop.Data.Migrations
 {
     using Microsoft.AspNet.Identity;
     using Microsoft.AspNet.Identity.EntityFramework;
     using Model.Models;
     using System;
+    using System.Collections.Generic;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
@@ -31,27 +32,47 @@ namespace TeduShop.Data.Migrations
             //
 
 
-            var manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new TeduShopDbContext()));
-            var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new TeduShopDbContext()));
+            //var manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new TeduShopDbContext()));
+            //var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new TeduShopDbContext()));
 
-            var user = new ApplicationUser()
+            //var user = new ApplicationUser()
+            //{
+            //    UserName = "duc",
+            //    Email = "ducpminh668@gmail.com",
+            //    EmailConfirmed = true,
+            //    BirthDay = DateTime.Now,
+            //    Fullname = "Pham Minh Duc"
+            //};
+            //manager.Create(user, "123456");
+            //if (!roleManager.Roles.Any())
+            //{
+            //    roleManager.Create(new IdentityRole { Name = "Admin" });
+            //    roleManager.Create(new IdentityRole { Name = "User" });
+            //}
+
+            //var adminUser = manager.FindByEmail("ducpminh668@gmail.com");
+
+            //manager.AddToRoles(adminUser.Id, new string[] { "Admin", "User" });
+
+            CreateProductCategorySample(context);
+        }
+
+        private void CreateProductCategorySample(TeduShop.Data.TeduShopDbContext context)
+        {
+            if (context.ProductCategories.Count() == 0)
             {
-                UserName = "duc",
-                Email = "ducpminh668@gmail.com",
-                EmailConfirmed = true,
-                BirthDay = DateTime.Now,
-                Fullname = "Pham Minh Duc"
+                List<ProductCategory> listProductCategory = new List<ProductCategory>()
+            {
+                new ProductCategory() { Name="Điện lạnh",Alias="dien-lanh",Status=true },
+                 new ProductCategory() { Name="Viễn thông",Alias="vien-thong",Status=true },
+                  new ProductCategory() { Name="Đồ gia dụng",Alias="do-gia-dung",Status=true },
+                   new ProductCategory() { Name="Mỹ phẩm",Alias="my-pham",Status=true }
             };
-            manager.Create(user, "123456");
-            if (!roleManager.Roles.Any())
-            {
-                roleManager.Create(new IdentityRole { Name = "Admin" });
-                roleManager.Create(new IdentityRole { Name = "User" });
+                context.ProductCategories.AddRange(listProductCategory);
+                context.SaveChanges();
             }
 
-            var adminUser = manager.FindByEmail("ducpminh668@gmail.com");
-
-            manager.AddToRoles(adminUser.Id, new string[] { "Admin", "User" });
         }
+
     }
 }
