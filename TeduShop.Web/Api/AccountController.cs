@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using static TeduShop.Web.App_Start.IdentityConfig;
+using TeduShop.Web.App_Start;
 
 namespace TeduShop.Web.Api
 {
@@ -63,14 +63,6 @@ namespace TeduShop.Web.Api
             return request.CreateResponse(HttpStatusCode.OK, result);
         }
 
-        [HttpPost]
-        [Authorize]
-        [Route("logout")]
-        public HttpResponseMessage Logout(HttpRequestMessage request)
-        {
-            var authenticationManager = HttpContext.Current.GetOwinContext().Authentication;
-            authenticationManager.SignOut();
-            return request.CreateResponse(HttpStatusCode.OK, new { success = true });
-        }
+
     }
 }

@@ -11,9 +11,30 @@
         $scope.keyword = '';
 
         $scope.search = search;
+
         $scope.deleteProductCategory = deleteProductCategory;
+
         $scope.selectAll = selectAll;
+
         $scope.deleteMultiple = deleteMultiple;
+
+        function deleteMultiple() {
+            var listId = [];
+            $.each($scope.selected, function (i, item) {
+                listId.push(item.ID);
+            });
+            var config = {
+                params: {
+                    checkedProductCategories: JSON.stringify(listId)
+                }
+            }
+            apiService.del('api/productcategory/deletemulti', config, function (result) {
+                notificationService.displaySuccess('Xóa thành công ' + result.data + ' bản ghi.');
+                search();
+            }, function (error) {
+                notificationService.displayError('Xóa không thành công');
+            });
+        }
 
         $scope.isAll = false;
         function selectAll() {
@@ -30,27 +51,6 @@
             }
         }
 
-        function deleteMultiple() {
-
-            $ngBootbox.confirm('Bạn có chắc muốn xóa?').then(function () {
-                let listId = [];
-                listId = $scope.selected.map(function (item) {
-                    return item.ID;
-                });
-                var config = {
-                    params: {
-                        listId: JSON.stringify(listId)
-                    }
-                }
-                apiService.del('api/productcategory/deletemulti', config, function (result) {
-                    notificationService.displaySuccess(`Đã xóa ${listId.length} danh mục.`);
-                    search();
-                }, function (err) {
-                    console.log(err);
-                });
-            });
-        }
-
         $scope.$watch("productCategories", function (n, o) {
             var checked = $filter("filter")(n, { checked: true });
             if (checked.length) {
@@ -60,10 +60,6 @@
                 $('#btnDelete').attr('disabled', 'disabled');
             }
         }, true);
-
-        function search() {
-            getProductCagories();
-        }
 
         function deleteProductCategory(id) {
             $ngBootbox.confirm('Bạn có chắc muốn xóa?').then(function () {
@@ -81,6 +77,10 @@
             });
         }
 
+        function search() {
+            getProductCagories();
+        }
+
         function getProductCagories(page) {
             page = page || 0;
             var config = {
@@ -91,6 +91,9 @@
                 }
             }
             apiService.get('/api/productcategory/getall', config, function (result) {
+                if (result.data.TotalCount == 0) {
+                    notificationService.displayWarning('Không có bản ghi nào được tìm thấy.');
+                }
                 $scope.productCategories = result.data.Items;
                 $scope.page = result.data.Page;
                 $scope.pagesCount = result.data.TotalPages;

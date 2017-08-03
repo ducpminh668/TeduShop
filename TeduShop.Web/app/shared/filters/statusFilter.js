@@ -1,13 +1,10 @@
-﻿/// <reference path="/Assets/admin/libs/angular/angular.js" />
-
-(function (app) {
-    app.filter('statusFilter',function(){
-        return function(input){
-            if(input === true)
+﻿(function (app) {
+    app.filter('statusFilter', function () {
+        return function (input) {
+            if (input == true)
                 return 'Kích hoạt';
-            else 
+            else
                 return 'Khóa';
         }
     });
-
 })(angular.module('tedushop.common'));

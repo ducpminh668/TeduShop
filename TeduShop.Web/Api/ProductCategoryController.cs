@@ -5,67 +5,29 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using System.Web.Script.Serialization;
 using TeduShop.Model.Models;
 using TeduShop.Service;
 using TeduShop.Web.Infrastructure.Core;
-using TeduShop.Web.Infrastructure.Extensions;
 using TeduShop.Web.Models;
+using TeduShop.Web.Infrastructure.Extensions;
+using System.Web.Script.Serialization;
 
 namespace TeduShop.Web.Api
 {
     [RoutePrefix("api/productcategory")]
+    [Authorize]
     public class ProductCategoryController : ApiControllerBase
     {
         #region Initialize
         private IProductCategoryService _productCategoryService;
 
-        public ProductCategoryController(IErrorService errorService, IProductCategoryService productCategoryService) : base(errorService)
+        public ProductCategoryController(IErrorService errorService, IProductCategoryService productCategoryService)
+            : base(errorService)
         {
             this._productCategoryService = productCategoryService;
         }
 
         #endregion
-
-        [Route("getall")]
-        [HttpGet]
-        public HttpResponseMessage GetAll(HttpRequestMessage request, string keyword, int page, int pageSize)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                int totalRow = 0;
-                var model = _productCategoryService.GetAll(keyword);
-                totalRow = model.Count();
-                var query = model.OrderByDescending(x => x.CreatedDate).Skip(page * pageSize).Take(pageSize);
-                var responData = Mapper.Map<IEnumerable<ProductCategory>, IEnumerable<ProductCategoryViewModel>>(query);
-
-                var paginationSet = new PaginationSet<ProductCategoryViewModel>()
-                {
-                    Items = responData,
-                    Page = page,
-                    TotalCount = totalRow,
-                    TotalPages = (int)Math.Ceiling((double)totalRow / pageSize)
-                };
-                var response = request.CreateResponse(HttpStatusCode.OK, paginationSet);
-
-                return response;
-            });
-        }
-
-        [Route("getbyid/{id:int}")]
-        [HttpGet]
-        public HttpResponseMessage GetByID(HttpRequestMessage request, int id)
-        {
-            return CreateHttpResponse(request, () =>
-            {
-                var model = _productCategoryService.GetById(id);
-                var responData = Mapper.Map<ProductCategory, ProductCategoryViewModel>(model);
-
-                var response = request.CreateResponse(HttpStatusCode.OK, responData);
-
-                return response;
-            });
-        }
 
         [Route("getallparents")]
         [HttpGet]
@@ -74,16 +36,60 @@ namespace TeduShop.Web.Api
             return CreateHttpResponse(request, () =>
             {
                 var model = _productCategoryService.GetAll();
-                var responData = Mapper.Map<IEnumerable<ProductCategory>, IEnumerable<ProductCategoryViewModel>>(model);
-                var response = request.CreateResponse(HttpStatusCode.OK, responData);
+
+                var responseData = Mapper.Map<IEnumerable<ProductCategory>, IEnumerable<ProductCategoryViewModel>>(model);
+
+                var response = request.CreateResponse(HttpStatusCode.OK, responseData);
+                return response;
+            });
+        }
+        [Route("getbyid/{id:int}")]
+        [HttpGet]
+        public HttpResponseMessage GetById(HttpRequestMessage request, int id)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                var model = _productCategoryService.GetById(id);
+
+                var responseData = Mapper.Map<ProductCategory, ProductCategoryViewModel>(model);
+
+                var response = request.CreateResponse(HttpStatusCode.OK, responseData);
+
                 return response;
             });
         }
 
+        [Route("getall")]
+        [HttpGet]
+        public HttpResponseMessage GetAll(HttpRequestMessage request, string keyword, int page, int pageSize = 20)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                int totalRow = 0;
+                var model = _productCategoryService.GetAll(keyword);
+
+                totalRow = model.Count();
+                var query = model.OrderByDescending(x => x.CreatedDate).Skip(page * pageSize).Take(pageSize);
+
+                var responseData = Mapper.Map<IEnumerable<ProductCategory>, IEnumerable<ProductCategoryViewModel>>(query);
+
+                var paginationSet = new PaginationSet<ProductCategoryViewModel>()
+                {
+                    Items = responseData,
+                    Page = page,
+                    TotalCount = totalRow,
+                    TotalPages = (int)Math.Ceiling((decimal)totalRow / pageSize)
+                };
+                var response = request.CreateResponse(HttpStatusCode.OK, paginationSet);
+                return response;
+            });
+        }
+
+
         [Route("create")]
         [HttpPost]
         [AllowAnonymous]
-        public HttpResponseMessage Create(HttpRequestMessage request, ProductCategoryViewModel productCategoryViewModel)
+        public HttpResponseMessage Create(HttpRequestMessage request, ProductCategoryViewModel productCategoryVm)
         {
             return CreateHttpResponse(request, () =>
             {
@@ -95,7 +101,7 @@ namespace TeduShop.Web.Api
                 else
                 {
                     var newProductCategory = new ProductCategory();
-                    newProductCategory.UpdateProductCategory(productCategoryViewModel);
+                    newProductCategory.UpdateProductCategory(productCategoryVm);
                     newProductCategory.CreatedDate = DateTime.Now;
                     _productCategoryService.Add(newProductCategory);
                     _productCategoryService.Save();
@@ -103,6 +109,7 @@ namespace TeduShop.Web.Api
                     var responseData = Mapper.Map<ProductCategory, ProductCategoryViewModel>(newProductCategory);
                     response = request.CreateResponse(HttpStatusCode.Created, responseData);
                 }
+
                 return response;
             });
         }
@@ -110,7 +117,7 @@ namespace TeduShop.Web.Api
         [Route("update")]
         [HttpPut]
         [AllowAnonymous]
-        public HttpResponseMessage Update(HttpRequestMessage request, ProductCategoryViewModel productCategoryViewModel)
+        public HttpResponseMessage Update(HttpRequestMessage request, ProductCategoryViewModel productCategoryVm)
         {
             return CreateHttpResponse(request, () =>
             {
@@ -121,15 +128,18 @@ namespace TeduShop.Web.Api
                 }
                 else
                 {
-                    var dbProductCategory = _productCategoryService.GetById(productCategoryViewModel.ID);
-                    dbProductCategory.UpdateProductCategory(productCategoryViewModel);
+                    var dbProductCategory = _productCategoryService.GetById(productCategoryVm.ID);
+
+                    dbProductCategory.UpdateProductCategory(productCategoryVm);
                     dbProductCategory.UpdatedDate = DateTime.Now;
+
                     _productCategoryService.Update(dbProductCategory);
                     _productCategoryService.Save();
 
                     var responseData = Mapper.Map<ProductCategory, ProductCategoryViewModel>(dbProductCategory);
-                    response = request.CreateResponse(HttpStatusCode.OK, responseData);
+                    response = request.CreateResponse(HttpStatusCode.Created, responseData);
                 }
+
                 return response;
             });
         }
@@ -142,32 +152,47 @@ namespace TeduShop.Web.Api
             return CreateHttpResponse(request, () =>
             {
                 HttpResponseMessage response = null;
+                if (!ModelState.IsValid)
+                {
+                    response = request.CreateResponse(HttpStatusCode.BadRequest, ModelState);
+                }
+                else
+                {
+                    var oldProductCategory = _productCategoryService.Delete(id);
+                    _productCategoryService.Save();
 
-                _productCategoryService.Delete(id);
-                _productCategoryService.Save();
+                    var responseData = Mapper.Map<ProductCategory, ProductCategoryViewModel>(oldProductCategory);
+                    response = request.CreateResponse(HttpStatusCode.Created, responseData);
+                }
 
-                response = request.CreateResponse(HttpStatusCode.NoContent);
                 return response;
             });
         }
-
         [Route("deletemulti")]
         [HttpDelete]
         [AllowAnonymous]
-        public HttpResponseMessage DeleteMulti(HttpRequestMessage request, string listId)
+        public HttpResponseMessage DeleteMulti(HttpRequestMessage request, string checkedProductCategories)
         {
             return CreateHttpResponse(request, () =>
             {
                 HttpResponseMessage response = null;
-
-                var ids = new JavaScriptSerializer().Deserialize<List<int>>(listId);
-                foreach(var id in ids)
+                if (!ModelState.IsValid)
                 {
-                    _productCategoryService.Delete(id);
+                    response = request.CreateResponse(HttpStatusCode.BadRequest, ModelState);
                 }
-                _productCategoryService.Save();
+                else
+                {
+                    var listProductCategory = new JavaScriptSerializer().Deserialize<List<int>>(checkedProductCategories);
+                    foreach (var item in listProductCategory)
+                    {
+                        _productCategoryService.Delete(item);
+                    }
 
-                response = request.CreateResponse(HttpStatusCode.NoContent);
+                    _productCategoryService.Save();
+
+                    response = request.CreateResponse(HttpStatusCode.OK, listProductCategory.Count);
+                }
+
                 return response;
             });
         }

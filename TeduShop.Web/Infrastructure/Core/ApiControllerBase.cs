@@ -13,27 +13,27 @@ namespace TeduShop.Web.Infrastructure.Core
     public class ApiControllerBase : ApiController
     {
         private IErrorService _errorService;
+
         public ApiControllerBase(IErrorService errorService)
         {
             this._errorService = errorService;
         }
 
-        protected HttpResponseMessage CreateHttpResponse(HttpRequestMessage requestMessage, Func<HttpResponseMessage> func)
+        protected HttpResponseMessage CreateHttpResponse(HttpRequestMessage requestMessage, Func<HttpResponseMessage> function)
         {
             HttpResponseMessage response = null;
-
             try
             {
-                response = func.Invoke();
+                response = function.Invoke();
             }
             catch (DbEntityValidationException ex)
             {
                 foreach (var eve in ex.EntityValidationErrors)
                 {
-                    Trace.WriteLine($"Entity of type \"{eve.Entry.Entity.GetType().Name}\" in state \"{eve.Entry.State}\" has the following validation errors.");
+                    Trace.WriteLine($"Entity of type \"{eve.Entry.Entity.GetType().Name}\" in state \"{eve.Entry.State}\" has the following validation error.");
                     foreach (var ve in eve.ValidationErrors)
                     {
-                        Trace.WriteLine($"- Property : \"{ve.PropertyName}\", Errors: \"{ve.ErrorMessage}\"");
+                        Trace.WriteLine($"- Property: \"{ve.PropertyName}\", Error: \"{ve.ErrorMessage}\"");
                     }
                 }
                 LogError(ex);
@@ -50,7 +50,6 @@ namespace TeduShop.Web.Infrastructure.Core
                 response = requestMessage.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
             }
             return response;
-
         }
 
         private void LogError(Exception ex)
@@ -66,7 +65,6 @@ namespace TeduShop.Web.Infrastructure.Core
             }
             catch
             {
-
             }
         }
     }

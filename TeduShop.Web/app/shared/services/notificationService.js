@@ -1,7 +1,4 @@
-﻿/// <reference path="E:\Project.NET\TeduShop\TeduShop\TeduShop.Web\Assets/admin/libs/angular/angular.js" />
-
-
-(function (app) {
+﻿(function (app) {
     app.factory('notificationService', notificationService);
 
     function notificationService() {
@@ -15,26 +12,26 @@
             "extendedTimeOut": 1000
         };
 
-        function displaySuccess(messages) {
-            toastr.success(messages)
+        function displaySuccess(message) {
+            toastr.success(message);
         }
 
         function displayError(error) {
             if (Array.isArray(error)) {
-                err.each(function (err) {
+                error.each(function (err) {
                     toastr.error(err);
                 });
-            } else {
+            }
+            else {
                 toastr.error(error);
             }
         }
 
-        function displayWarning(messages) {
-            toastr.warning(messages)
+        function displayWarning(message) {
+            toastr.warning(message);
         }
-
-        function displayInfo(messages) {
-            toastr.info(messages)
+        function displayInfo(message) {
+            toastr.info(message);
         }
 
         return {
